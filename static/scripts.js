@@ -105,20 +105,18 @@ var documentEl = $(document);
 
 var ProductView = BaseView.extend({
     events: {
-        'click .btn': function () {
-            top.location.href = this.model.get('landingurl');
-        }
-    },
-    template: '<div class="product"> <h2>{{name}}</h2> <div class="image"> <img src="/static/images/{{product_image}}"></div> <ul><li class="brand">{{brand}}</li> <li><a href="#" class="btn tag-friends">Tag Friends</a> </li></ul> </div>'
-})
-
-var ProductReadOnlyView = ProductView.extend({
-    events: {
         'click .buy-now': function () {
             top.location.href = this.model.get('landingurl');
         },
         'click .tag-friends': 'showFriendList'
     },
+    template: '<div class="product"> <h2>{{name}}</h2> <div class="image"> <img src="/static/images/{{product_image}}"></div> <ul><li class="brand">{{brand}}</li> <li><a href="#" class="btn tag-friends">Tag Friends</a> </li></ul> </div>',
+    showFriendList: function(){
+        console.log('showing Friend list');
+    }
+})
+
+var ProductReadOnlyView = ProductView.extend({
     template: '<div class="product"> <h2>{{name}}</h2> <div class="image"> <img src="/static/images/{{product_image}}"></div> <ul><li class="brand">{{brand}}</li> <li><a href="#" class="btn buy-now">Buy Now</a> </li></ul> </div>'
 })
 
