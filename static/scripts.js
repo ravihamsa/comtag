@@ -55,7 +55,6 @@ var proxyGetOption = function (optionName) {
 };
 
 
-
 var baseApp = _.extend({}, Backbone)
 
 var BaseView = Backbone.View.extend({
@@ -103,13 +102,33 @@ var PhotoView = BaseView.extend({
 
 var documentEl = $(document);
 
-var TagView = BaseView.extend({
-    events:{
-        'mouseenter .fa':'handleMouseEnter',
-        'click .remove-but':'removeTag',
-        'click .collapse-but':'collapseTag'
+
+var ProductView = BaseView.extend({
+    events: {
+        'click .btn': function () {
+            top.location.href = this.model.get('landingurl');
+        }
     },
-    template: '<i class="fa fa-tag fa-2x"></i> <div class="form"> <input type="text" name="details" class="auto-input"> <a href="#remove" class="remove-but"> <i class="fa fa-close"> </i> </a></div> ',
+    template: '<div class="product"> <h2>{{name}}</h2> <div class="image"> <img src="/static/images/{{product_image}}"></div> <ul><li class="brand">{{brand}}</li> <li><a href="#" class="btn tag-friends">Tag Friends</a> </li></ul> </div>'
+})
+
+var ProductReadOnlyView = ProductView.extend({
+    events: {
+        'click .buy-now': function () {
+            top.location.href = this.model.get('landingurl');
+        },
+        'click .tag-friends': 'showFriendList'
+    },
+    template: '<div class="product"> <h2>{{name}}</h2> <div class="image"> <img src="/static/images/{{product_image}}"></div> <ul><li class="brand">{{brand}}</li> <li><a href="#" class="btn buy-now">Buy Now</a> </li></ul> </div>'
+})
+
+var TagView = BaseView.extend({
+    events: {
+        'mouseenter .fa': 'handleMouseEnter',
+        'click .remove-but': 'removeTag',
+        'click .collapse-but': 'collapseTag'
+    },
+    template: '<i class="fa fa-tag fa-2x"></i> <div class="form"> <input type="text" name="details" class="auto-input" value="{{name}}"> <a href="#remove" class="remove-but"> <i class="fa fa-close"> </i> </a> <div class="product-container" style="display: none"> </div></div>  ',
     className: 'tag',
     onPostRender: function () {
         var _this = this;
@@ -122,59 +141,96 @@ var TagView = BaseView.extend({
 
         _this.initAutoComplete()
 
-        _this.model.on('change:hover', function(){
+        _this.checkProductSelection();
+
+        _this.model.on('change:hover', function () {
             _this.syncHover();
         })
         _this.syncHover();
     },
-    handleMouseEnter: function(){
+    handleMouseEnter: function () {
         this.model.collection.trigger('hoverModel', this.model);
     },
-    initAutoComplete: function(){
+
+    initAutoComplete: function () {
+        var _this = this;
         var a = this.$('.auto-input').autocomplete({
-            serviceUrl:'/data/listings.json',
-            minChars:2,
-            maxHeight:400,
-            width:300,
+            serviceUrl: '/comtag/listings/query/',
+            minChars: 2,
+            maxHeight: 400,
+            width: 300,
             zIndex: 9999,
             deferRequestBy: 0, //miliseconds
             noCache: false, //default is false, set to true to disable caching
-            onSelect: function(value, data){ console.log('You selected: ' , value ,', ' + data); }
+            onSelect: function (value, data) {
+                _this.selectProduct(value);
+            }
         });
-        console.log(a);
     },
-    syncHover: function(){
+
+    checkProductSelection: function () {
+        if (this.model.get('productId')) {
+            this.selectProduct(this.model.toJSON());
+        }
+    },
+    syncHover: function () {
         var _this = this;
         var hover = _this.model.get('hover');
-       if(hover){
-           _this.$el.addClass('hover')
-           documentEl.off('click.outside');
-           documentEl.on('click.outside', function(event) {
-               var tagParent = $(event.target).closest('.tag');
-               if(!tagParent.length) {
-                   _this.collapseTag();
-               }
-           })
+        if (hover) {
+            _this.$el.addClass('hover')
+            documentEl.off('click.outside');
+            documentEl.on('click.outside', function (event) {
+                var tagParent = $(event.target).closest('.tag');
+                if (!tagParent.length) {
+                    _this.collapseTag();
+                }
+            })
 
-       }else{
-           _this.$el.removeClass('hover');
-       }
-        setTimeout(function(){
-            if(hover){
+        } else {
+            _this.$el.removeClass('hover');
+        }
+        setTimeout(function () {
+            if (hover) {
                 _this.$('input').focus();
             }
         }, 100)
     },
-    removeTag: function(){
+    removeTag: function () {
+        documentEl.off('click.outside');
         this.model.collection.trigger('removeTag', this.model);
+
     },
-    collapseTag: function(){
+    collapseTag: function () {
         this.model.collection.trigger('clearHoverModel', this.model);
+    },
+    selectProduct: function (data) {
+        var container = this.$('.product-container');
+        var model = this.model;
+        model.set(data);
+        var view = new ProductView({
+            model: model
+        });
+        view.render();
+        container.html(view.el);
+        container.show();
+        this.model.collection.trigger('saveTags');
     }
 })
 
 var ReadOnlyTagView = TagView.extend({
-    template: '<i class="fa fa-tag fa-2x"></i> <div class="form"> <a href="#">URL to the landing page</a> </div> '
+    template: '<i class="fa fa-tag fa-2x"></i> <div class="form"> <div class="product-container" style="display: none"> </div></div>  ',
+    selectProduct: function (data) {
+        var container = this.$('.product-container');
+        var model = this.model;
+        model.set(data);
+        var view = new ProductReadOnlyView({
+            model: model
+        });
+        view.render();
+        container.html(view.el);
+        container.show();
+        this.model.collection.trigger('saveTags');
+    }
 });
 
 var TagCollection = Backbone.Collection.extend({
@@ -184,8 +240,8 @@ var TagCollection = Backbone.Collection.extend({
     url: function () {
         return '/comtag/taglist/' + this.photoId;
     },
-    parse: function(arr){
-         _.each(arr, function(item){
+    parse: function (arr) {
+        _.each(arr, function (item) {
             item.hover = false;
         })
         return arr;
@@ -207,10 +263,10 @@ var PhotoDetailView = BaseView.extend({
     template: '<div class="photo-detail" style="margin: 0 auto;"><div class="img"> <img src="{{source}}" style="width:auto; height: 500px;"> </div> <div class="overlay"> <div class="tag-list"></div> </div> <div class="footer"> <button class="btn post-to-wall"> Post to Wall</button></div> </div>',
     events: {
         'click .tag-list': 'addTag',
-        'click .post-to-wall':'postToWall',
-        'click .tag-your-photos':'tagYourPhotos'
+        'click .post-to-wall': 'postToWall',
+        'click .tag-your-photos': 'tagYourPhotos'
     },
-    fetchTagCollection: function(){
+    fetchTagCollection: function () {
         var _this = this;
         _this.tagCollection = new TagCollection({
             photoId: _this.model.id
@@ -218,32 +274,32 @@ var PhotoDetailView = BaseView.extend({
 
         var hoverModel
 
-        _this.tagCollection.on('hoverModel',function(model){
-            if(hoverModel){
-                if(hoverModel.id === model.id){
+        _this.tagCollection.on('hoverModel', function (model) {
+            if (hoverModel) {
+                if (hoverModel.id === model.id) {
                     return;
                 }
             }
 
-           _this.tagCollection.each(function(eachModel){
-               eachModel.set('hover', false);
-           })
+            _this.tagCollection.each(function (eachModel) {
+                eachModel.set('hover', false);
+            })
             model.set('hover', true);
             hoverModel = model;
         })
 
-        _this.tagCollection.on('clearHoverModel', function(model){
-            if(hoverModel){
-              hoverModel.set('hover', false);
+        _this.tagCollection.on('clearHoverModel', function (model) {
+            if (hoverModel) {
+                hoverModel.set('hover', false);
             }
             hoverModel = null;
         });
 
-        _this.tagCollection.on('removeTag',function(model){
+        _this.tagCollection.on('removeTag', function (model) {
             _this.tagCollection.remove(model);
         });
 
-        _this.tagCollection.fetch().done(function(){
+        _this.tagCollection.fetch().done(function () {
             _this.tagCounter = _this.tagCollection.length;
             _this.renderTagList();
         });
@@ -254,15 +310,15 @@ var PhotoDetailView = BaseView.extend({
         this.fetchTagCollection();
     },
     addTag: function (e) {
-        var target  = $(e.target);
+        var target = $(e.target);
 
-        if(target.hasClass('tag-list')){
+        if (target.hasClass('tag-list')) {
             var _this = this;
             var tagMeta = {
                 left: e.offsetX,
                 top: e.offsetY,
-                id: _this.model.id + '_'+_this.tagCounter++,
-                hover:false
+                id: _this.model.id + '_' + _this.tagCounter++,
+                hover: false
             }
             _this.tagCollection.add(tagMeta);
             _this.saveTags();
@@ -281,15 +337,19 @@ var PhotoDetailView = BaseView.extend({
             _this.renderTag(model);
         });
 
-        this.listenTo(this.tagCollection, 'add', function(model){
+        this.listenTo(this.tagCollection, 'add', function (model) {
             _this.renderTag(model);
         })
 
-        this.listenTo(this.tagCollection, 'remove', function(model){
+        this.listenTo(this.tagCollection, 'remove', function (model) {
             _this.removeTag(model);
         })
+
+        this.listenTo(this.tagCollection, 'saveTags', function (model) {
+            _this.saveTags();
+        })
     },
-    renderTag: function(model){
+    renderTag: function (model) {
         var _this = this;
         var tagListContainer = _this.$('.tag-list');
 
@@ -297,46 +357,48 @@ var PhotoDetailView = BaseView.extend({
             model: model
         })
 
-        _this.tagViewIndex[model.id]=tagView;
+        _this.tagViewIndex[model.id] = tagView;
         tagView.render();
         tagView.$el.appendTo(tagListContainer);
     },
-    removeTag: function(model){
+    removeTag: function (model) {
         this.tagViewIndex[model.id].remove();
         this.saveTags();
     },
     saveTags: function () {
-        this.tagCollection.each(function(model){
-            model.unset('hover');
+        var json = this.tagCollection.toJSON();
+        _.each(json, function (item) {
+            delete item.hover;
         })
+
         $.ajax({type: "POST",
             url: '/comtag/taglist/' + this.model.id,
-            data:JSON.stringify(this.tagCollection.toJSON())});
+            data: JSON.stringify(json)});
 
         this.saveImage();
     },
-    saveImage: function(){
+    saveImage: function () {
         console.log('saving image');
         $.ajax({type: "POST",
             url: '/comtag/images/' + this.model.id,
-            data:JSON.stringify(this.model.toJSON())});
+            data: JSON.stringify(this.model.toJSON())});
     },
-    onPostRender: function(){
+    onPostRender: function () {
         var _this = this;
         var image = this.$('.img img');
-        if(image.width() !== 0){
+        if (image.width() !== 0) {
             _this.resetOverlayWidth();
-        }else{
-           image.on('load', function(){
-               _this.resetOverlayWidth();
-           });
+        } else {
+            image.on('load', function () {
+                _this.resetOverlayWidth();
+            });
         }
     },
-    resetOverlayWidth: function(){
+    resetOverlayWidth: function () {
         this.$('.tag-list').width(this.$('.img img').width());
     },
-    postToWall: function(){
-        var tags = this.tagCollection.map(function(model){
+    postToWall: function () {
+        var tags = this.tagCollection.map(function (model) {
             return model.id;
         });
 
@@ -344,28 +406,28 @@ var PhotoDetailView = BaseView.extend({
             "/me/feed",
             "POST",
             {
-                "message": "checkout what I brought "+ tags.join(','),
-                "name":"Tag Your Wear",
-                "link":"https://apps.facebook.com/comtagapp/"+this.model.id,
-                "picture":this.model.get('source'),
-                "privacy":{value:'EVERYONE'}
+                "message": "checkout what I brought " + tags.join(','),
+                "name": "Tag Your Wear",
+                "link": "https://apps.facebook.com/comtagapp/" + this.model.id,
+                "picture": this.model.get('source'),
+                "privacy": {value: 'EVERYONE'}
             },
             function (response) {
                 if (response && !response.error) {
-                    top.location.href="https://www.facebook.com"
+                    top.location.href = "https://www.facebook.com"
                 }
             }
         );
     },
-    tagYourPhotos: function(){
-        top.location.href="https://apps.facebook.com/comtagapp/"
+    tagYourPhotos: function () {
+        top.location.href = "https://apps.facebook.com/comtagapp/"
     }
 })
 
 
 var PhotoReadOnlyDetailView = PhotoDetailView.extend({
     template: '<div class="photo-detail read-only" style="margin: 0 auto;"><div class="img"> <img src="{{source}}" style="width:auto; height: 500px;"> </div> <div class="overlay"> <div class="tag-list"></div> </div> <div class="footer"> <button class="btn tag-your-photos"> Tag Your Photos</button> </div>',
-    renderTag: function(model){
+    renderTag: function (model) {
         var _this = this;
         var tagListContainer = _this.$('.tag-list');
 
@@ -373,7 +435,7 @@ var PhotoReadOnlyDetailView = PhotoDetailView.extend({
             model: model
         })
 
-        _this.tagViewIndex[model.id]=tagView;
+        _this.tagViewIndex[model.id] = tagView;
         tagView.render();
         tagView.$el.appendTo(tagListContainer);
     }

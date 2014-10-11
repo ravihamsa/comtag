@@ -108,12 +108,11 @@
 
     var renderDetailPage = function(photoObj){
         var photoModel = new Backbone.Model(photoObj);
-        debugger;
         var photoView = new PhotoReadOnlyDetailView({
             model:photoModel
         });
         photoView.render();
-        photoView.$el.appendTo('.photo-detail');
+        photoView.$el.appendTo('.photo-detail-container');
     }
 
 
@@ -124,7 +123,7 @@
 <div class="wrapper">
     <h1 class="page-title"> <i class="fa fa-tags fa-1x"></i> Tag your wear!</h1>
 
-    <div class="photo-detail">
+    <div class="photo-detail-container">
 
     </div>
 

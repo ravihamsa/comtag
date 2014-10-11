@@ -234,9 +234,59 @@ body {
 }
 
 
+.product-container {
+  background-color: #fff;
+  padding: 5px;
+  margin-top: 5px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+
+  h2, li{
+    color:#666;
+  }
+
+  h2, .image {
+    margin-bottom: 5px;
+  }
+
+  .image {
+    text-align: left;
+
+    img {
+      width:100%;
+    }
+  }
+
+  a {
+    color:#1a4293;
+  }
+
+  ul {
+    margin-bottom: 5px;
+    li {
+      width:49%;
+      display: inline-block;
+      text-align: right;
+
+      &.brand {
+        text-align: left;
+        text-transform: uppercase;
+      }
+    }
+  }
+}
+
 
 .autocomplete-w1 { background:url(img/shadow.png) no-repeat bottom right; position:absolute; top:0px; left:0px; margin:6px 0 0 6px; /* IE6 fix: */ _background:none; _margin:1px 0 0 0; }
 .autocomplete { border:1px solid #999; background:#FFF; cursor:default; text-align:left; max-height:350px; overflow:auto; margin:-6px 6px 6px -6px; /* IE6 specific: */ _height:350px;  _margin:0; _overflow-x:hidden; }
 .autocomplete .selected { background:#F0F0F0; }
 .autocomplete div { padding:2px 5px; white-space:nowrap; overflow:hidden; }
 .autocomplete strong { font-weight:normal; color:#3399FF; }
+
+.autocomplete-suggestions { overflow: auto; border: 1px solid #CBD3DD; background: #FFF; }
+
+.autocomplete-suggestion { overflow: hidden; padding: 5px 15px; white-space: nowrap; color:#666;}
+
+.autocomplete-selected { background: #F0F0F0; }
+
+.autocomplete-suggestions strong { color: #029cca; font-weight: normal; }

@@ -564,8 +564,7 @@
                 }
 
                 ajaxSettings = {
-                    url: serviceUrl,
-                    data: params,
+                    url: serviceUrl + params.query,
                     type: options.type,
                     dataType: options.dataType
                 };
