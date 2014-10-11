@@ -134,7 +134,7 @@ var TagView = BaseView.extend({
         'click .collapse-but': 'collapseTag',
         'keypress .auto-input':'handleKeyPress'
     },
-    template: '<i class="fa fa-tag fa-2x"></i> <div class="form"> <input type="text" name="details" class="auto-input" value="{{name}}"> <a href="#remove" class="remove-but"> <i class="fa fa-close"> </i> </a> <div class="product-container" style="display: none"> </div></div>  ',
+    template: '<i class="fa fa-tag fa-2x"></i> <div class="form"> <input type="text" name="details" class="auto-input" value="{{name}}" placeholder="Say what it is?"> <a href="#remove" class="remove-but"> <i class="fa fa-close"> </i> </a> <div class="product-container" style="display: none"> </div></div>  ',
     className: 'tag',
     onPostRender: function () {
         var _this = this;
@@ -333,8 +333,8 @@ var PhotoDetailView = BaseView.extend({
         if (target.hasClass('tag-list')) {
             var _this = this;
             var tagMeta = {
-                left: e.offsetX,
-                top: e.offsetY,
+                left: e.offsetX || e.originalEvent.layerX,
+                top: e.offsetY || e.originalEvent.layerY,
                 id: _this.model.id + '_' + _this.tagCounter++,
                 hover: false
             }
@@ -428,7 +428,7 @@ var PhotoDetailView = BaseView.extend({
             "/me/feed",
             "POST",
             {
-                "message": "checkout what I brought " + tags.join(','),
+                "message": "I brought " + tags.join(','),
                 "name": "Tag Your Wear",
                 "link": "https://apps.facebook.com/comtagapp/" + this.model.id,
                 "picture": this.model.get('source'),
