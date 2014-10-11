@@ -33,7 +33,7 @@ app.post('/comtag/:photoId', function(req, res){
 
 
 app.get('/homepage', function(req, res){
-    res.sendFile('index.html', sendOptions);
+    res.sendFile('viewpage.html', sendOptions);
 })
 
 var jsonParser = bodyParser.json();
@@ -95,15 +95,31 @@ app.get('/comtag/taglist/:tagId', function(req, res){
 app.post('/comtag/taglist/:tagId', jsonParser, function(request, respond){
     var body = '';
     var tagId = request.params.tagId;
-    console.log(request.body, '=======');
-
     var filePath = __dirname+'/data/tags/'+tagId+'.json';
     request.on('data', function(data) {
         body += data;
     });
 
     request.on('end', function (){
-        console.log(body, '=======');
+
+        fs.writeFile(filePath, body, function() {
+            respond.end();
+        });
+    });
+});
+
+app.post('/comtag/images/:imageId', jsonParser, function(request, respond){
+    var body = '';
+
+    var imageId = request.params.imageId;
+    var filePath = __dirname+'/data/images/'+imageId+'.json';
+    console.log(imageId, filePath, 'ravi');
+    request.on('data', function(data) {
+        body += data;
+    });
+
+    request.on('end', function (){
+        console.log('saving', filePath);
         fs.writeFile(filePath, body, function() {
             respond.end();
         });

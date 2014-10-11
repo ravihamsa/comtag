@@ -109,7 +109,7 @@ var TagView = BaseView.extend({
         'click .remove-but':'removeTag',
         'click .collapse-but':'collapseTag'
     },
-    template: '<i class="fa fa-tag fa-2x"></i> <div class="form"> <input type="text" name="details"> <a href="#remove" class="remove-but"> <i class="fa fa-close"> </i> </a></div> ',
+    template: '<i class="fa fa-tag fa-2x"></i> <div class="form"> <input type="text" name="details" class="auto-input"> <a href="#remove" class="remove-but"> <i class="fa fa-close"> </i> </a></div> ',
     className: 'tag',
     onPostRender: function () {
         var _this = this;
@@ -120,6 +120,8 @@ var TagView = BaseView.extend({
         });
         _this.$el.addClass('pulse');
 
+        _this.initAutoComplete()
+
         _this.model.on('change:hover', function(){
             _this.syncHover();
         })
@@ -127,6 +129,19 @@ var TagView = BaseView.extend({
     },
     handleMouseEnter: function(){
         this.model.collection.trigger('hoverModel', this.model);
+    },
+    initAutoComplete: function(){
+        var a = this.$('.auto-input').autocomplete({
+            serviceUrl:'/data/listings.json',
+            minChars:2,
+            maxHeight:400,
+            width:300,
+            zIndex: 9999,
+            deferRequestBy: 0, //miliseconds
+            noCache: false, //default is false, set to true to disable caching
+            onSelect: function(value, data){ console.log('You selected: ' , value ,', ' + data); }
+        });
+        console.log(a);
     },
     syncHover: function(){
         var _this = this;
@@ -158,6 +173,10 @@ var TagView = BaseView.extend({
     }
 })
 
+var ReadOnlyTagView = TagView.extend({
+    template: '<i class="fa fa-tag fa-2x"></i> <div class="form"> <a href="#">URL to the landing page</a> </div> '
+});
+
 var TagCollection = Backbone.Collection.extend({
     initialize: function (options) {
         this.photoId = options.photoId;
@@ -188,7 +207,8 @@ var PhotoDetailView = BaseView.extend({
     template: '<div class="photo-detail" style="margin: 0 auto;"><div class="img"> <img src="{{source}}" style="width:auto; height: 500px;"> </div> <div class="overlay"> <div class="tag-list"></div> </div> <div class="footer"> <button class="btn post-to-wall"> Post to Wall</button></div> </div>',
     events: {
         'click .tag-list': 'addTag',
-        'click .post-to-wall':'postToWall'
+        'click .post-to-wall':'postToWall',
+        'click .tag-your-photos':'tagYourPhotos'
     },
     fetchTagCollection: function(){
         var _this = this;
@@ -272,6 +292,7 @@ var PhotoDetailView = BaseView.extend({
     renderTag: function(model){
         var _this = this;
         var tagListContainer = _this.$('.tag-list');
+
         var tagView = new TagView({
             model: model
         })
@@ -291,6 +312,14 @@ var PhotoDetailView = BaseView.extend({
         $.ajax({type: "POST",
             url: '/comtag/taglist/' + this.model.id,
             data:JSON.stringify(this.tagCollection.toJSON())});
+
+        this.saveImage();
+    },
+    saveImage: function(){
+        console.log('saving image');
+        $.ajax({type: "POST",
+            url: '/comtag/images/' + this.model.id,
+            data:JSON.stringify(this.model.toJSON())});
     },
     onPostRender: function(){
         var _this = this;
@@ -318,7 +347,8 @@ var PhotoDetailView = BaseView.extend({
                 "message": "checkout what I brought "+ tags.join(','),
                 "name":"Tag Your Wear",
                 "link":"https://apps.facebook.com/comtagapp/"+this.model.id,
-                "picture":this.model.get('source')
+                "picture":this.model.get('source'),
+                "privacy":{value:'EVERYONE'}
             },
             function (response) {
                 if (response && !response.error) {
@@ -326,6 +356,26 @@ var PhotoDetailView = BaseView.extend({
                 }
             }
         );
+    },
+    tagYourPhotos: function(){
+        top.location.href="https://apps.facebook.com/comtagapp/"
+    }
+})
+
+
+var PhotoReadOnlyDetailView = PhotoDetailView.extend({
+    template: '<div class="photo-detail read-only" style="margin: 0 auto;"><div class="img"> <img src="{{source}}" style="width:auto; height: 500px;"> </div> <div class="overlay"> <div class="tag-list"></div> </div> <div class="footer"> <button class="btn tag-your-photos"> Tag Your Photos</button> </div>',
+    renderTag: function(model){
+        var _this = this;
+        var tagListContainer = _this.$('.tag-list');
+
+        var tagView = new ReadOnlyTagView({
+            model: model
+        })
+
+        _this.tagViewIndex[model.id]=tagView;
+        tagView.render();
+        tagView.$el.appendTo(tagListContainer);
     }
 })
 
