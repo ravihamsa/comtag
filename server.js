@@ -1,4 +1,6 @@
 var fs = require('fs');
+var bodyParser = require('body-parser')
+var path = require('path');
 var http = require('http');
 var https = require('https');
 var privateKey  = fs.readFileSync('key.pem', 'utf8');
@@ -11,22 +13,87 @@ var app = express();
 // your express configuration here
 
 
+
+var sendOptions = {
+    root: __dirname
+}
+
+app.post('/comtag', function(req, res){
+    res.sendFile('index.html', sendOptions);
+});
+
+var jsonParser = bodyParser.json();
+
 app.get('/comtag/', function(req, res){
     var file = req.params.file;
-    res.sendfile('index.html');
+    res.sendFile('index.html', sendOptions);
 });
 
 app.get('/comtag/static/:file', function(req, res){
     var file = req.params.file;
-    res.sendfile('static/'+file);
+    res.sendFile('static/'+file, sendOptions);
+});
+
+app.get('/comtag/static/css/:file', function(req, res){
+    var file = req.params.file;
+    res.sendFile('static/css/'+file, sendOptions);
+});
+
+app.get('/comtag/static/fonts/:file', function(req, res){
+    var file = req.params.file;
+    res.sendFile('static/fonts/'+file, sendOptions);
+});
+
+
+app.get('/comtag/taglist/', function(req, res){
+    var tagFilePath = __dirname+'/data/tags/';
+    if(fs.existsSync(tagFilePath)){
+        res.send('it exists');
+    }else{
+        res.send(tagFilePath+ ' it doesnt exists');
+    }
+})
+
+
+
+
+app.get('/comtag/taglist/:tagId', function(req, res){
+    var tagId = req.params.tagId;
+    var tagFilePath = __dirname+'/data/tags/'+tagId+'.json';
+    if(fs.existsSync(tagFilePath)){
+        res.sendFile(tagFilePath);
+    }else{
+        fs.writeFile(tagFilePath, '[]', function (err) {
+            if (err) throw err;
+            console.log('It\'s saved! in same location.');
+        });
+        res.send('[]');
+    }
+})
+
+app.post('/comtag/taglist/:tagId', jsonParser, function(request, respond){
+    var body = '';
+    var tagId = request.params.tagId;
+    console.log(request.body, '=======');
+
+    var filePath = __dirname+'/data/tags/'+tagId+'.json';
+    request.on('data', function(data) {
+        body += data;
+    });
+
+    request.on('end', function (){
+        console.log(body, '=======');
+        fs.writeFile(filePath, body, function() {
+            respond.end();
+        });
+    });
 });
 
 
 
 
-app.post('/comtag', function(req, res){
-    res.sendfile('index.html');
-});
+
+
 
 
 var httpServer = http.createServer(app);
