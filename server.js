@@ -19,14 +19,35 @@ var sendOptions = {
 }
 
 app.post('/comtag', function(req, res){
+    console.log(req.params.photoId);
+    console.log(req.params);
     res.sendFile('index.html', sendOptions);
 });
+
+
+app.post('/comtag/:photoId', function(req, res){
+    console.log(req.params.photoId);
+    console.log(req.params);
+    res.redirect('/homepage?photoId='+req.params.photoId);
+});
+
+
+app.get('/homepage', function(req, res){
+    res.sendFile('index.html', sendOptions);
+})
 
 var jsonParser = bodyParser.json();
 
 app.get('/comtag/', function(req, res){
     var file = req.params.file;
     res.sendFile('index.html', sendOptions);
+});
+
+
+app.get('/comtag/:photoId', function(req, res){
+    console.log(req.params.photoId);
+    console.log(req.params);
+    res.redirect('/homepage?photoId='+req.params.photoId);
 });
 
 app.get('/comtag/static/:file', function(req, res){

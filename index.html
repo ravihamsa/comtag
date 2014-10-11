@@ -5,6 +5,8 @@
     <title>ComTag</title>
     <script src="static/handlebars-v2.0.0.js"></script>
     <script src="static/jquery-1.11.1.min.js"></script>
+    <script src="static/html2canvas.js"></script>
+    <script src="static/jquery.plugin.html2canvas.js"></script>
     <script src="static/underscore.js"></script>
     <script src="static/backbone.js"></script>
     <script src="static/mockdata.js"></script>
@@ -16,6 +18,24 @@
 </head>
 <body>
 <script>
+
+    function getParameterByName(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+                results = regex.exec(location.search);
+        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+
+    function capture() {
+        $('.photo-detail').html2canvas({
+            onrendered: function (canvas) {
+                //Set hidden field's value to image data (base-64 string)
+                $('#img_val').val(canvas.toDataURL("image/png"));
+                //Submit the form manually
+                document.getElementById("myForm").submit();
+            }
+        });
+    }
 
 
 
@@ -59,7 +79,7 @@
                 // Otherwise, show Login dialog first.
                 FB.login(function(response) {
                     onLogin(response);
-                }, {scope: 'user_friends, email, user_photos',
+                }, {scope: 'user_friends, email, user_photos, publish_actions',
                     return_scopes: true});
             }
         });
@@ -90,9 +110,18 @@
 
         photoCollection.reset(array);
 
-        var photoView = new PhotoDetailView({
-            model:photoCollection.first()
-        });
+        var photoId = getParameterByName('photoId');
+        if(photoId && photoCollection.get(photoId)) {
+            var photoView = new PhotoDetailView({
+                model:photoCollection.get(photoId)
+            });
+        }else{
+            var photoView = new PhotoDetailView({
+                model:photoCollection.first()
+            });
+        }
+
+
 
         photoView.render();
         photoView.$el.appendTo('.photo-detail');
@@ -122,6 +151,8 @@
     <div class="thumb-list">
 
     </div>
+
+
 </div>
 
 

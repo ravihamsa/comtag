@@ -12,7 +12,7 @@ html * {
 }
 
 body {
-  background:url('bluebg.jpg') no-repeat center top;
+  background:url('/static/bluebg.jpg') no-repeat center top;
 }
 
 .wrapper {
@@ -94,13 +94,16 @@ body {
     text-align: center;
   }
 
+  .footer {
+    text-align: center;
+  }
 
   .overlay {
     position: absolute;
     top:0;
     left:0;
     right: 0;
-    bottom: 0;
+    bottom: 30px;
     text-align: center;
 
     .tag-list {
@@ -120,11 +123,14 @@ body {
 
         .form {
           display: none;
-
-          .remove-but {
+          .remove-but, .collapse-but {
             padding:5px;
-            i{
+            .fa-close{
               color:#f00;
+            }
+
+            .fa-arrow-left {
+              color:#666;
             }
           }
         }
@@ -133,7 +139,7 @@ body {
 
         &.hover {
           .fa-tag {
-            -webkit-transform: rotate(45deg);
+            -webkit-transform: rotate(45deg) translateX(-5px) translateY(10px);
           }
 
           .form {
@@ -145,8 +151,8 @@ body {
 
       .form {
         position:  absolute;
-        top:-3px;
-        left:20px;
+        top:0px;
+        left:15px;
         width:200px;
         border:1px solid #ccc;
         background-color: #efefef;
@@ -160,6 +166,8 @@ body {
           line-height: 14px;
           padding:3px;
           color:#666;
+          outline: none;
+          border: 1px solid #ccc;
 
           &:focus {
             border: 1px solid #87b0ed;
@@ -168,6 +176,29 @@ body {
       }
     }
   }
+}
+
+.btn {
+  padding: 0.3em 0.6em 0.375em;
+  border: 1px solid #999;
+  border-bottom-color: #888;
+  margin: 0;
+  text-decoration: none;
+  text-align: center;
+  font: bold 11px/normal 'lucida grande', tahoma, verdana, arial, sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+  /* outline: none; */
+  color: #333;
+  background-color: #eee;
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f5f6f6), to(#e4e4e3));
+  background-image: -moz-linear-gradient(#f5f6f6, #e4e4e3);
+  background-image: -o-linear-gradient(#f5f6f6, #e4e4e3);
+  background-image: linear-gradient(#f5f6f6, #e4e4e3);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#f5f6f6', EndColorStr='#e4e4e3'); /* for IE 6 - 9 */
+  -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 #fff;
+  -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 #fff;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 #fff;
 }
 
 

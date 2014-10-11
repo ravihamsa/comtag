@@ -55,6 +55,7 @@ var proxyGetOption = function (optionName) {
 };
 
 
+
 var baseApp = _.extend({}, Backbone)
 
 var BaseView = Backbone.View.extend({
@@ -100,12 +101,15 @@ var PhotoView = BaseView.extend({
 })
 
 
+var documentEl = $(document);
+
 var TagView = BaseView.extend({
     events:{
         'mouseenter .fa':'handleMouseEnter',
-        'click .remove-but':'removeTag'
+        'click .remove-but':'removeTag',
+        'click .collapse-but':'collapseTag'
     },
-    template: '<i class="fa fa-tag fa-2x"></i> <div class="form"> <input type="text" name="details"> <a href="#remove" class="remove-but"> <i class="fa fa-close"> </i> </a> </div> ',
+    template: '<i class="fa fa-tag fa-2x"></i> <div class="form"> <input type="text" name="details"> <a href="#remove" class="remove-but"> <i class="fa fa-close"> </i> </a></div> ',
     className: 'tag',
     onPostRender: function () {
         var _this = this;
@@ -116,9 +120,10 @@ var TagView = BaseView.extend({
         });
         _this.$el.addClass('pulse');
 
-        _this.model.on('change', function(){
+        _this.model.on('change:hover', function(){
             _this.syncHover();
         })
+        _this.syncHover();
     },
     handleMouseEnter: function(){
         this.model.collection.trigger('hoverModel', this.model);
@@ -126,7 +131,19 @@ var TagView = BaseView.extend({
     syncHover: function(){
         var _this = this;
         var hover = _this.model.get('hover');
-        _this.$el.toggleClass('hover',hover );
+       if(hover){
+           _this.$el.addClass('hover')
+           documentEl.off('click.outside');
+           documentEl.on('click.outside', function(event) {
+               var tagParent = $(event.target).closest('.tag');
+               if(!tagParent.length) {
+                   _this.collapseTag();
+               }
+           })
+
+       }else{
+           _this.$el.removeClass('hover');
+       }
         setTimeout(function(){
             if(hover){
                 _this.$('input').focus();
@@ -135,6 +152,9 @@ var TagView = BaseView.extend({
     },
     removeTag: function(){
         this.model.collection.trigger('removeTag', this.model);
+    },
+    collapseTag: function(){
+        this.model.collection.trigger('clearHoverModel', this.model);
     }
 })
 
@@ -144,6 +164,13 @@ var TagCollection = Backbone.Collection.extend({
     },
     url: function () {
         return '/comtag/taglist/' + this.photoId;
+    },
+    parse: function(arr){
+         _.each(arr, function(item){
+            item.hover = false;
+        })
+        return arr;
+
     }
 })
 
@@ -158,9 +185,10 @@ var PhotoDetailView = BaseView.extend({
 
         _this.fetchTagCollection();
     },
-    template: '<div class="photo-detail" style="margin: 0 auto;"><div class="img"> <img src="{{source}}" style="width:auto; height: 500px;"> </div> <div class="overlay"> <div class="tag-list"></div> </div> </div>',
+    template: '<div class="photo-detail" style="margin: 0 auto;"><div class="img"> <img src="{{source}}" style="width:auto; height: 500px;"> </div> <div class="overlay"> <div class="tag-list"></div> </div> <div class="footer"> <button class="btn post-to-wall"> Post to Wall</button></div> </div>',
     events: {
-        'click .tag-list': 'addTag'
+        'click .tag-list': 'addTag',
+        'click .post-to-wall':'postToWall'
     },
     fetchTagCollection: function(){
         var _this = this;
@@ -171,12 +199,25 @@ var PhotoDetailView = BaseView.extend({
         var hoverModel
 
         _this.tagCollection.on('hoverModel',function(model){
-            if(hoverModel && hoverModel.id !== model.id){
-                hoverModel.set('hover', false)
+            if(hoverModel){
+                if(hoverModel.id === model.id){
+                    return;
+                }
             }
+
+           _this.tagCollection.each(function(eachModel){
+               eachModel.set('hover', false);
+           })
             model.set('hover', true);
             hoverModel = model;
         })
+
+        _this.tagCollection.on('clearHoverModel', function(model){
+            if(hoverModel){
+              hoverModel.set('hover', false);
+            }
+            hoverModel = null;
+        });
 
         _this.tagCollection.on('removeTag',function(model){
             _this.tagCollection.remove(model);
@@ -200,7 +241,8 @@ var PhotoDetailView = BaseView.extend({
             var tagMeta = {
                 left: e.offsetX,
                 top: e.offsetY,
-                id: _this.model.id + '_'+_this.tagCounter++
+                id: _this.model.id + '_'+_this.tagCounter++,
+                hover:false
             }
             _this.tagCollection.add(tagMeta);
             _this.saveTags();
@@ -243,6 +285,9 @@ var PhotoDetailView = BaseView.extend({
         this.saveTags();
     },
     saveTags: function () {
+        this.tagCollection.each(function(model){
+            model.unset('hover');
+        })
         $.ajax({type: "POST",
             url: '/comtag/taglist/' + this.model.id,
             data:JSON.stringify(this.tagCollection.toJSON())});
@@ -260,6 +305,27 @@ var PhotoDetailView = BaseView.extend({
     },
     resetOverlayWidth: function(){
         this.$('.tag-list').width(this.$('.img img').width());
+    },
+    postToWall: function(){
+        var tags = this.tagCollection.map(function(model){
+            return model.id;
+        });
+
+        FB.api(
+            "/me/feed",
+            "POST",
+            {
+                "message": "checkout what I brought "+ tags.join(','),
+                "name":"Tag Your Wear",
+                "link":"https://apps.facebook.com/comtagapp/"+this.model.id,
+                "picture":this.model.get('source')
+            },
+            function (response) {
+                if (response && !response.error) {
+                    top.location.href="https://www.facebook.com"
+                }
+            }
+        );
     }
 })
 

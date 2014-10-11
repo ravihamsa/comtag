@@ -11,7 +11,7 @@ html * {
   font-family: "Roboto";
 }
 body {
-  background: url('bluebg.jpg') no-repeat center top;
+  background: url('/static/bluebg.jpg') no-repeat center top;
 }
 .wrapper {
   width: 900px;
@@ -75,12 +75,15 @@ body {
 .photo-detail .title {
   text-align: center;
 }
+.photo-detail .footer {
+  text-align: center;
+}
 .photo-detail .overlay {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: 30px;
   text-align: center;
 }
 .photo-detail .overlay .tag-list {
@@ -100,22 +103,28 @@ body {
 .photo-detail .overlay .tag-list .tag .form {
   display: none;
 }
-.photo-detail .overlay .tag-list .tag .form .remove-but {
+.photo-detail .overlay .tag-list .tag .form .remove-but,
+.photo-detail .overlay .tag-list .tag .form .collapse-but {
   padding: 5px;
 }
-.photo-detail .overlay .tag-list .tag .form .remove-but i {
+.photo-detail .overlay .tag-list .tag .form .remove-but .fa-close,
+.photo-detail .overlay .tag-list .tag .form .collapse-but .fa-close {
   color: #f00;
 }
+.photo-detail .overlay .tag-list .tag .form .remove-but .fa-arrow-left,
+.photo-detail .overlay .tag-list .tag .form .collapse-but .fa-arrow-left {
+  color: #666;
+}
 .photo-detail .overlay .tag-list .tag.hover .fa-tag {
-  -webkit-transform: rotate(45deg);
+  -webkit-transform: rotate(45deg) translateX(-5px) translateY(10px);
 }
 .photo-detail .overlay .tag-list .tag.hover .form {
   display: block;
 }
 .photo-detail .overlay .tag-list .form {
   position: absolute;
-  top: -3px;
-  left: 20px;
+  top: 0px;
+  left: 15px;
   width: 200px;
   border: 1px solid #ccc;
   background-color: #efefef;
@@ -130,9 +139,34 @@ body {
   line-height: 14px;
   padding: 3px;
   color: #666;
+  outline: none;
+  border: 1px solid #ccc;
 }
 .photo-detail .overlay .tag-list .form input:focus {
   border: 1px solid #87b0ed;
+}
+.btn {
+  padding: 0.3em 0.6em 0.375em;
+  border: 1px solid #999;
+  border-bottom-color: #888;
+  margin: 0;
+  text-decoration: none;
+  text-align: center;
+  font: bold 11px normal 'lucida grande', tahoma, verdana, arial, sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+  /* outline: none; */
+  color: #333;
+  background-color: #eee;
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f5f6f6), to(#e4e4e3));
+  background-image: -moz-linear-gradient(#f5f6f6, #e4e4e3);
+  background-image: -o-linear-gradient(#f5f6f6, #e4e4e3);
+  background-image: linear-gradient(#f5f6f6, #e4e4e3);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#f5f6f6', EndColorStr='#e4e4e3');
+  /* for IE 6 - 9 */
+  -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 #ffffff;
+  -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 #ffffff;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 #ffffff;
 }
 .page-title {
   font-size: 30px;
