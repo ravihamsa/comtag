@@ -54,6 +54,11 @@ var proxyGetOption = function (optionName) {
     return getOption(this, optionName);
 };
 
+var idCounter = 0
+var getUniqueId = function(){
+    return Math.random() + '.'+new Date().getTime() + '.'+idCounter;
+}
+
 
 var baseApp = _.extend({}, Backbone)
 
@@ -108,23 +113,26 @@ var ProductView = BaseView.extend({
         'click .buy-now': function () {
             top.location.href = this.model.get('landingurl');
         },
-        'click .tag-friends': 'showFriendList'
+        'click .tag-friends': function () {
+            top.location.href = this.model.get('landingurl');
+        }
     },
-    template: '<div class="product"> <h2>{{name}}</h2> <div class="image"> <img src="/static/images/{{product_image}}"></div> <ul><li class="brand">{{brand}}</li> <li><a href="#" class="btn tag-friends">Tag Friends</a> </li></ul> </div>',
+    template: '<div class="product"> <h2>{{name}}</h2> {{#if product_image}}<div class="image"> <img src="/static/images/{{product_image}}"></div>{{/if}} <ul><li class="brand">{{brand}}</li> <li><a href="#" class="btn tag-friends">Explore</a> </li></ul> </div>',
     showFriendList: function(){
         console.log('showing Friend list');
     }
 })
 
 var ProductReadOnlyView = ProductView.extend({
-    template: '<div class="product"> <h2>{{name}}</h2> <div class="image"> <img src="/static/images/{{product_image}}"></div> <ul><li class="brand">{{brand}}</li> <li><a href="#" class="btn buy-now">Buy Now</a> </li></ul> </div>'
+    template: '<div class="product"> <h2>{{name}}</h2>{{#if product_image}}<div class="image"> <img src="/static/images/{{product_image}}"></div> {{/if}} <ul><li class="brand">{{brand}}</li> <li><a href="#" class="btn buy-now">Buy Now</a> </li></ul> </div>'
 })
 
 var TagView = BaseView.extend({
     events: {
         'mouseenter .fa': 'handleMouseEnter',
         'click .remove-but': 'removeTag',
-        'click .collapse-but': 'collapseTag'
+        'click .collapse-but': 'collapseTag',
+        'keypress .auto-input':'handleKeyPress'
     },
     template: '<i class="fa fa-tag fa-2x"></i> <div class="form"> <input type="text" name="details" class="auto-input" value="{{name}}"> <a href="#remove" class="remove-but"> <i class="fa fa-close"> </i> </a> <div class="product-container" style="display: none"> </div></div>  ',
     className: 'tag',
@@ -212,6 +220,18 @@ var TagView = BaseView.extend({
         container.html(view.el);
         container.show();
         this.model.collection.trigger('saveTags');
+    },
+    handleKeyPress: function(e){
+        if(e.keyCode === 13){
+
+            var obj = {};
+            obj.productId = getUniqueId();
+            obj.name = this.$('.auto-input').val();
+            obj.landingurl = 'http://google.com/#q='+obj.name;
+            obj.brand = 'unknown';
+            this.selectProduct(obj);
+
+        }
     }
 })
 
@@ -369,6 +389,10 @@ var PhotoDetailView = BaseView.extend({
             delete item.hover;
         })
 
+        json = _.filter(json, function(item){
+            return item.productId !== undefined;
+        })
+
         $.ajax({type: "POST",
             url: '/comtag/taglist/' + this.model.id,
             data: JSON.stringify(json)});
@@ -397,7 +421,7 @@ var PhotoDetailView = BaseView.extend({
     },
     postToWall: function () {
         var tags = this.tagCollection.map(function (model) {
-            return model.id;
+            return model.get('name');
         });
 
         FB.api(
@@ -424,6 +448,10 @@ var PhotoDetailView = BaseView.extend({
 
 
 var PhotoReadOnlyDetailView = PhotoDetailView.extend({
+    events: {
+        'click .post-to-wall': 'postToWall',
+        'click .tag-your-photos': 'tagYourPhotos'
+    },
     template: '<div class="photo-detail read-only" style="margin: 0 auto;"><div class="img"> <img src="{{source}}" style="width:auto; height: 500px;"> </div> <div class="overlay"> <div class="tag-list"></div> </div> <div class="footer"> <button class="btn tag-your-photos"> Tag Your Photos</button> </div>',
     renderTag: function (model) {
         var _this = this;
