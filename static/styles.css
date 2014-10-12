@@ -116,7 +116,7 @@ body {
   color: #666;
 }
 .photo-detail .overlay .tag-list .tag.hover .fa-tag {
-  -webkit-transform: rotate(45deg) translateX(-5px) translateY(10px);
+  transform: rotate(45deg) translateX(-5px) translateY(10px);
 }
 .photo-detail .overlay .tag-list .tag.hover .form {
   display: block;

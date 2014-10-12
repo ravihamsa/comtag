@@ -101,6 +101,14 @@ var suggestions = [
         "bigimage": "MenGliderShoe.png",
         "product_image": "glider_shoe.jpeg",
         "landingurl": "http://www.flipkart.com/gliders-newclark-walking-shoes/p/itmdzm4ypdczafex?pid=SHODRBH9HMGUUPSX"
+    },
+    {
+        "productId": 12,
+        "brand": "WildCraft",
+        "name": "Wildcraft Solid Men's Raincoat",
+        "bigimage": "MenGliderShoe.png",
+        "product_image": "rain-jacket-pro-range-green-wildcraft-m-400x400-imadyqcjtvxsubsy.jpeg",
+        "landingurl": "http://www.flipkart.com/wildcraft-solid-men-s-raincoat/p/itmdxtvp82msmpwr?pid=RNCDXTVPZUPYESDW"
     }
 ]
 

@@ -124,7 +124,7 @@ var ProductView = BaseView.extend({
 })
 
 var ProductReadOnlyView = ProductView.extend({
-    template: '<div class="product"> <h2>{{name}}</h2>{{#if product_image}}<div class="image"> <img src="/static/images/{{product_image}}"></div> {{/if}} <ul><li class="brand">{{brand}}</li> <li><a href="#" class="btn buy-now">Buy Now</a> </li></ul> </div>'
+    template: '<div class="product"> <h2>{{name}}</h2>{{#if product_image}}<div class="image"> <img src="/static/images/{{product_image}}"></div> {{/if}} <ul><li class="brand">{{brand}}</li> <li><a href="#" class="btn buy-now">Check it out</a> </li></ul> </div>'
 })
 
 var TagView = BaseView.extend({
@@ -428,8 +428,8 @@ var PhotoDetailView = BaseView.extend({
             "/me/feed",
             "POST",
             {
-                "message": "I brought " + tags.join(','),
-                "name": "Tag Your Wear",
+                "message": "Checkout my " + tags.join(','),
+                "name": "ComTag",
                 "link": "https://apps.facebook.com/comtagapp/" + this.model.id,
                 "picture": this.model.get('source'),
                 "privacy": {value: 'EVERYONE'}
